@@ -14,19 +14,26 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <jmh.version>1.36</jmh.version>
+        <jooq.version>3.18.5</jooq.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.18.5</version>
+            <version>${jooq.version}</version>
         </dependency>
         <dependency>
             <groupId>io.r2dbc</groupId>
             <artifactId>r2dbc-spi</artifactId>
             <version>1.0.0.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.6.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
@@ -43,4 +50,48 @@
             <version>1.18.3</version>
         </dependency>
     </dependencies>
+
+    <!-- mvn generate-sources -P generate-jooq-code -->
+    <profiles>
+        <profile>
+            <id>generate-jooq-code</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>${jooq.version}</version>
+
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+
+                        <!-- https://www.jooq.org/xsd/jooq-codegen-3.18.0.xsd -->
+                        <configuration>
+                            <jdbc>
+                                <url>jdbc:postgresql://localhost:5432/postgres</url>
+                                <user>postgres</user>
+                                <password>test</password>
+                            </jdbc>
+
+                            <generator>
+                                <database>
+                                    <includes>public.product|public.product_recommendation</includes>
+                                </database>
+                                <target>
+                                    <packageName>com.xobotun.jooq</packageName>
+                                    <directory>${project.basedir}/src/main/java/</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
