@@ -1,6 +1,8 @@
 package com.xobotun;
 
 import org.openjdk.jmh.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Set;
 @Fork(1)
 //@Threads(4)
 public class QueryBenchmark {
+    private static final Logger logger = LoggerFactory.getLogger(QueryBenchmark.class);
 
     @State(Scope.Benchmark)
     public static class DatabaseState {
@@ -28,13 +31,17 @@ public class QueryBenchmark {
 
         @Setup
         public void setup() {
+            queryLists = DataListGenerator.generateSets(queryListSize, productRecommendationNumber);
+
             container.start();
+            logger.debug("Started PG container");
             DatabasePopulator.populateWithData(container, productRecommendationNumber);
         }
 
         @TearDown
         public void tearDown() {
             container.stop();
+            logger.debug("Stopped PG container");
         }
     }
 
