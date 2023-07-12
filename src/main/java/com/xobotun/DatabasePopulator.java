@@ -10,8 +10,8 @@ import java.sql.Statement;
 
 public class DatabasePopulator {
     private static final Logger logger = LoggerFactory.getLogger(DatabasePopulator.class);
-    private static final String DEFAULT_USER = "test";
-    private static final String DEFAULT_PASSWORD = "test";
+    public static final String DEFAULT_USER = "test";
+    public static final String DEFAULT_PASSWORD = "test";
 
     public static void populateWithData(JdbcDatabaseContainer container, int dataSize) {
         int productCount = dataSize / 10;
