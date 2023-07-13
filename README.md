@@ -121,5 +121,3 @@ to the main table.
 Anyway, it seems like the winner is `concatenatedStringApproach`, and the resulting sql query is 
 `select id from product_recommendation pr where not (pr.product_id1 = any(string_to_array(?, ',')::integer[]))`,
 given the argument is passed as a comma-joined string of integers. (e.g. `1,2,34,56,789`)
-
-However, I think there are no indices in the temporary table, so I'll do a quick revisit of that code.

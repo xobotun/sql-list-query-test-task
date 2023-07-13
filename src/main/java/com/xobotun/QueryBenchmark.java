@@ -58,6 +58,8 @@ public class QueryBenchmark {
             DatabasePopulator.populateWithData(container, productRecommendationNumber);
 
             connection = DriverManager.getConnection(container.getJdbcUrl(), DEFAULT_USER, DEFAULT_PASSWORD);
+
+            logger.info("Startup complete");
         }
 
         @TearDown
@@ -73,7 +75,6 @@ public class QueryBenchmark {
         }
     }
 
-    @Benchmark
     public void naiveQueryApproach(DatabaseState state, Blackhole blackhole) {
         DSLContext ctx = DSL.using(state.connection, SQLDialect.POSTGRES);
 
@@ -85,7 +86,6 @@ public class QueryBenchmark {
         blackhole.consume(result);
     }
 
-    @Benchmark
     public void concatenatedStringApproach(DatabaseState state, Blackhole blackhole) {
         DSLContext ctx = DSL.using(state.connection, SQLDialect.POSTGRES);
 
@@ -110,7 +110,7 @@ public class QueryBenchmark {
 
         AtomicReference<Result<Record1<Integer>>> resultRef = new AtomicReference<>();
         ctx.transaction(trx -> {
-            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).execute();
+            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).primaryKey(tmpColumn).execute();
             for (Integer i : notIds) trx.dsl().insertInto(tmpTable, tmpColumn).values(i).execute();
 
             Result<Record1<Integer>> result = trx.dsl().select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION)
@@ -135,7 +135,7 @@ public class QueryBenchmark {
 
         AtomicReference<Result<Record1<Integer>>> resultRef = new AtomicReference<>();
         ctx.transaction(trx -> {
-            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).execute();
+            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).primaryKey(tmpColumn).execute();
             // Failed to figure out how to use unnest with jooq. :/
             trx.dsl().query("insert into excluded_ids(id) select unnest(string_to_array(?, ','))::integer", ids).execute();
 
@@ -162,7 +162,7 @@ public class QueryBenchmark {
 
         AtomicReference<Result<Record1<Integer>>> resultRef = new AtomicReference<>();
         ctx.transaction(trx -> {
-            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).execute();
+            trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).primaryKey(tmpColumn).execute();
 
             for (List<Integer> batch : batched) {
                 BatchBindStep batchQuery = trx.dsl().batch(trx.dsl().insertInto(tmpTable, tmpColumn).values((Integer) null));
