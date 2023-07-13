@@ -5,6 +5,7 @@ import org.jooq.Record;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.util.postgres.PostgresDSL;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -26,9 +27,9 @@ import static com.xobotun.jooq.public_.tables.ProductRecommendation.PRODUCT_RECO
 import static org.jooq.impl.DSL.value;
 
 
-@BenchmarkMode({Mode.AverageTime, Mode.Throughput})
-@Warmup(iterations = 0, time = 2)
-@Measurement(iterations = 1, time = 1)
+@BenchmarkMode(Mode.AverageTime)
+@Warmup(iterations = 1, time = 2)
+@Measurement(iterations = 1, time = 10)
 @Fork(1)
 //@Threads(4)
 public class QueryBenchmark {
@@ -36,12 +37,12 @@ public class QueryBenchmark {
 
     @State(Scope.Benchmark)
     public static class DatabaseState {
-        // How much data is within the database: 500k, 5M, 50M
-//        @Param({ "500000", "5000000"/*, "50000000"*/ })
-        public int productRecommendationNumber = 1000;
+        // How much data is within the database: 500k, 5M,
+        @Param({ "500000", "5000000" })
+        public int productRecommendationNumber;
         // How much product_ids is passed: 10k, 100k, 1M
-//        @Param({ "10000", "100000", "1000000" })
-        public int queryListSize = 100;
+        @Param({ "10000", "100000", "1000000" })
+        public int queryListSize;
         private List<Set<Integer>> queryLists;
         private int attemptCount = 0;
 

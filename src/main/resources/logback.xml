@@ -14,5 +14,5 @@
     <root level="warn">
         <appender-ref ref="console"/>
     </root>
-    <logger level="debug" name="com.xobotun"/>
+    <logger level="info" name="com.xobotun"/>
 </configuration>

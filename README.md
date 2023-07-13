@@ -33,4 +33,34 @@
 
 ### Difficulties
 
+1. It was nasty to write JooQ queries with PostgreSQL-specific syntax. 
+   For example in `insert into excluded_ids(id) select unnest(string_to_array(?, ','))::integer` the `unnest` operator
+   is acting weird in Postgres and thus is badly supported by JooQ. Or I haven't figured the right way to use it an spent
+   some hours figuring it out.
+2. Generating random 5M data took about a minute on my machine, so I decide not to run 50M tests. I believe this time 
+   can be improved by a lot by generating the data first, and applying the limitations
+   (pk and fk indices and fk constraints) after the data was created, but I simply don't have enough time 
+   to polish this test.
+
 ### Conclusion
+
+The first run with 500k products, 5M recommendations and 100k query elements took 11:32 time units and returned 
+the following result:
+
+```text
+Benchmark                                                 Mode  Cnt   Score   Error  Units
+QueryBenchmark.naiveQueryApproach                        thrpt        0.445          ops/s
+QueryBenchmark.concatenatedStringApproach                thrpt        0.498          ops/s
+QueryBenchmark.temporaryTableNaiveApproach               thrpt        0.023          ops/s
+QueryBenchmark.temporaryTableConcatenatedStringApproach  thrpt        0.364          ops/s
+QueryBenchmark.temporaryTableBatchedApproach             thrpt        0.294          ops/s
+QueryBenchmark.naiveQueryApproach                         avgt        2.442           s/op
+QueryBenchmark.concatenatedStringApproach                 avgt        2.172           s/op
+QueryBenchmark.temporaryTableNaiveApproach                avgt       46.229           s/op
+QueryBenchmark.temporaryTableConcatenatedStringApproach   avgt        2.827           s/op
+QueryBenchmark.temporaryTableBatchedApproach              avgt        3.950           s/op
+```
+
+It is weird to naive approach with a temporary table to be so fast, but this benchmark run had only 1 run 
+and none warmups. I used it to determine what benchmark mode will suit this test the best and decided it was `AvgTime`.
+
