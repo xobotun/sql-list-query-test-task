@@ -25,9 +25,26 @@
 3. Look up any other viable options in the Internet:
    1. [Baeldung](https://www.baeldung.com/spring-jdbctemplate-in-list) mentions a temporary table.
    2. [An answer on SO](https://stackoverflow.com/a/32561721/7643283) mentions passing list as a concatenated string. 
-4. Ask ChatGPT-4 for lulz: 
-    1. Happened to be down at the moment
-5. As I have no work and 2 days to complete this test task, let's try to compare the approaches.
+4. Ask ChatGPT-3.5: was down back then. I ran it after I was done with this task. 
+   
+   """
+
+   To obtain a list of all recommendations where `product_id1` is not in the given array/collection, you can follow these main steps:
+   Convert the array/collection of product IDs to a format suitable for SQL query execution. This can be achieved by either creating a temporary table in the database or constructing a comma-separated string of the product IDs.
+   Use the SQL `NOT IN` operator to retrieve the recommendations where product_id1 is not present in the array/collection of product IDs.
+   Here is the main SQL query that needs to be executed:
+    ```sql
+    SELECT *
+    FROM product_recommendation
+    WHERE product_id1 NOT IN (/* Insert the array/collection of product IDs here */);
+    ```
+    Ensure that you replace the comment /* Insert the array/collection of product IDs here */ with the actual array or collection of product IDs in the appropriate format.
+
+    """
+    
+    Which is basically what I have done. 
+
+6. As I have no work and 2 days to complete this test task, let's try to compare the approaches.
 6. I will use PostgreSQL as the database. Using different RDBMS is also interesting, but this will bloat out 
    the task I want to do too much.
 
