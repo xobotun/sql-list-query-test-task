@@ -14,7 +14,7 @@ public class DatabasePopulator {
     public static final String DEFAULT_PASSWORD = "test";
 
     public static void populateWithData(JdbcDatabaseContainer container, int dataSize) {
-        int productCount = dataSize / 10;
+        int productCount = getProductCount(dataSize);
 
         try (Connection conn = DriverManager.getConnection(container.getJdbcUrl(), DEFAULT_USER, DEFAULT_PASSWORD)) {
             try (Statement stat = conn.createStatement()) {
@@ -32,5 +32,9 @@ public class DatabasePopulator {
             e.printStackTrace();
         }
 
+    }
+
+    public static int getProductCount(int dataSize) {
+        return dataSize / 10;
     }
 }

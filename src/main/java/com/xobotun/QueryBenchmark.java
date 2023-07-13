@@ -50,7 +50,7 @@ public class QueryBenchmark {
 
         @Setup
         public void setup() throws SQLException {
-            queryLists = DataListGenerator.generateSets(queryListSize, productRecommendationNumber);
+            queryLists = DataListGenerator.generateSets(queryListSize, DatabasePopulator.getProductCount(productRecommendationNumber));
 
             container.start();
             logger.debug("Started PG container");
@@ -112,9 +112,8 @@ public class QueryBenchmark {
             trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).execute();
             for (Integer i : notIds) trx.dsl().insertInto(tmpTable, tmpColumn).values(i).execute();
 
-            // TODO: fix this query
-            Result<Record1<Integer>> result = ctx.select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION).join(tmpTable)
-                    .on(PRODUCT_RECOMMENDATION.PRODUCT_ID1.ne(tmpTable.field(tmpColumn))).fetch();
+            Result<Record1<Integer>> result = trx.dsl().select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION)
+                    .where(PRODUCT_RECOMMENDATION.PRODUCT_ID1.notIn(trx.dsl().select(tmpColumn).from(tmpTable))).fetch();
 
             trx.dsl().dropTemporaryTable(tmpTable).execute();
             resultRef.set(result);
@@ -136,10 +135,11 @@ public class QueryBenchmark {
         AtomicReference<Result<Record1<Integer>>> resultRef = new AtomicReference<>();
         ctx.transaction(trx -> {
             trx.dsl().createTemporaryTable(tmpTable).column(tmpColumn).execute();
-            PostgresDSL.query("insert into excluded_ids(id) select unnest(string_to_array('{0}', ','))::integer", ids);
+            // Failed to figure out how to use unnest with jooq. :/
+            trx.dsl().query("insert into excluded_ids(id) select unnest(string_to_array(?, ','))::integer", ids).execute();
 
-            Result<Record1<Integer>> result = ctx.select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION).join(tmpTable)
-                    .on(PRODUCT_RECOMMENDATION.PRODUCT_ID1.ne(tmpTable.field(tmpColumn))).fetch();
+            Result<Record1<Integer>> result = trx.dsl().select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION)
+                    .where(PRODUCT_RECOMMENDATION.PRODUCT_ID1.notIn(trx.dsl().select(tmpColumn).from(tmpTable))).fetch();
 
             trx.dsl().dropTemporaryTable(tmpTable).execute();
             resultRef.set(result);
@@ -169,8 +169,8 @@ public class QueryBenchmark {
                 batchQuery.execute();
             }
 
-            Result<Record1<Integer>> result = ctx.select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION).join(tmpTable)
-                    .on(PRODUCT_RECOMMENDATION.PRODUCT_ID1.ne(tmpTable.field(tmpColumn))).fetch();
+            Result<Record1<Integer>> result = trx.dsl().select(PRODUCT_RECOMMENDATION.ID).from(PRODUCT_RECOMMENDATION)
+                    .where(PRODUCT_RECOMMENDATION.PRODUCT_ID1.notIn(trx.dsl().select(tmpColumn).from(tmpTable))).fetch();
 
             trx.dsl().dropTemporaryTable(tmpTable).execute();
             resultRef.set(result);
