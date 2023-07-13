@@ -28,8 +28,8 @@ import static org.jooq.impl.DSL.value;
 
 
 @BenchmarkMode(Mode.AverageTime)
-@Warmup(iterations = 1, time = 2)
-@Measurement(iterations = 1, time = 10)
+@Warmup(iterations = 2, time = 2)
+@Measurement(iterations = 5, time = 10)
 @Fork(1)
 //@Threads(4)
 public class QueryBenchmark {
@@ -75,6 +75,7 @@ public class QueryBenchmark {
         }
     }
 
+    @Benchmark
     public void naiveQueryApproach(DatabaseState state, Blackhole blackhole) {
         DSLContext ctx = DSL.using(state.connection, SQLDialect.POSTGRES);
 
@@ -86,6 +87,7 @@ public class QueryBenchmark {
         blackhole.consume(result);
     }
 
+    @Benchmark
     public void concatenatedStringApproach(DatabaseState state, Blackhole blackhole) {
         DSLContext ctx = DSL.using(state.connection, SQLDialect.POSTGRES);
 

@@ -138,3 +138,37 @@ to the main table.
 Anyway, it seems like the winner is `concatenatedStringApproach`, and the resulting sql query is 
 `select id from product_recommendation pr where not (pr.product_id1 = any(string_to_array(?, ',')::integer[]))`,
 given the argument is passed as a comma-joined string of integers. (e.g. `1,2,34,56,789`)
+
+---
+
+### Additional tests
+
+In tests above, a new instance of database was created on each benchmark run, and it added its toll to how fast
+tests were. I decided to manually run a database container and populate it with some data:
+
+```sql
+postgres.public> insert into product select from generate_series(1, 500000)
+[2023-07-13 15:07:38] 500,000 rows affected in 865 ms
+postgres.public> insert into product_recommendation (product_id1, product_id2)
+                 select floor(random() * 500000 + 1)::int, floor(random() * 500000 + 1)::int
+                 from generate_series(1, 5000000)
+[2023-07-13 15:08:38] 5,000,000 rows affected in 59 s 641 ms
+```
+
+It took about a minute to populate the container. And then I realised I have forgotten to adjust number of iterations
+from 1 when I was troubleshooting to 2 2s warmup iterations and 5 10s benchmark iterations.
+Twentyish minutes later I got the following, with concatenated string being the fastest, with naive query being the second.   
+
+```text
+Benchmark                                                (queryListSize)  Mode  Cnt   Score   Error  Units
+QueryBenchmark.naiveQueryApproach                                  10000  avgt    5   1.763 ± 0.132   s/op
+QueryBenchmark.naiveQueryApproach                                 100000  avgt    5   1.739 ± 0.114   s/op
+QueryBenchmark.concatenatedStringApproach                          10000  avgt    5   1.773 ± 0.068   s/op
+QueryBenchmark.concatenatedStringApproach                         100000  avgt    5   1.626 ± 0.092   s/op
+QueryBenchmark.temporaryTableNaiveApproach                         10000  avgt    5   6.515 ± 0.169   s/op
+QueryBenchmark.temporaryTableNaiveApproach                        100000  avgt    5  42.482 ± 0.725   s/op
+QueryBenchmark.temporaryTableConcatenatedStringApproach            10000  avgt    5   1.987 ± 0.088   s/op
+QueryBenchmark.temporaryTableConcatenatedStringApproach           100000  avgt    5   2.072 ± 0.041   s/op
+QueryBenchmark.temporaryTableBatchedApproach                       10000  avgt    5   2.131 ± 0.200   s/op
+QueryBenchmark.temporaryTableBatchedApproach                      100000  avgt    5   2.771 ± 0.195   s/op
+```
